@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "master-thesis"
+version = "0.1.0"
+description = ""
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+packages = [{include = "master_thesis", from = "src"}]
+
+[tool.poetry.dependencies]
+python = ">=3.10,<3.13"
+pandas = "^2.0.3"
+ipykernel = "^6.25.0"
+scipy = "^1.11.1"
+simple-icd-10-cm = "^1.1.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
