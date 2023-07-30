@@ -1,5 +1,6 @@
 import master_thesis.simple_icd_10_cm as cm
 import pandas as pd
+import numpy as np
 from functools import reduce
 from scipy.sparse import csr_matrix
 from scipy.sparse.csgraph import min_weight_full_bipartite_matching
@@ -270,7 +271,7 @@ def get_ss8(patient1: list[str],patient2: list[str],ic_function,cs_function) -> 
     return ss8
 
 def get_similarity(patients_list: list[list[str]],ic_function,cs_function,ss_funtion) -> list[list[float]]:
-    """get similarity matrix from list of patients"""
+    """get distance matrix from list of patients"""
     n=1
     matrix = []
     for p1 in patients_list:
@@ -278,7 +279,7 @@ def get_similarity(patients_list: list[list[str]],ic_function,cs_function,ss_fun
         for p2 in patients_list:
             if patients_list.index(p1) == patients_list.index(p2):
                 patients_list.index(p2) + 1
-                row.append(1)
+                row.append(0)
                 continue
             print(f'(Case:{n}, Patients: first_patient: {patients_list.index(p1)+1}, second_patient: {patients_list.index(p2)+1})')
             n=n+1
