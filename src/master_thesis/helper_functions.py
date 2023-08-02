@@ -56,7 +56,7 @@ def get_concept_with_total_levels_in_taxonomy() -> str:
     concept_with_most_levels = leaves_of_root[a]
     return concept_with_most_levels
 
-def get_details(patient_list: list):
+def get_details(patient_list: list[list[str]]):
     """get details of list of patients with concepts"""
     print(f'Numer of patients: {len(patient_list)}')
     for c in patient_list:
@@ -288,3 +288,70 @@ def get_similarity(patients_list: list[list[str]],ic_function,cs_function,ss_fun
             row.append(set_level_similarity)
         matrix.append(row)
     return matrix
+
+def get_test_distance(patients_list_1: list[list[str]],patients_list_2: list[list[str]],ic_function,cs_function,ss_funtion) -> list[list[float]]:
+    """get distance matrix between train patients and test patients"""
+    n=1
+    matrix = []
+    for p1 in patients_list_1:
+        row = []
+        for p2 in patients_list_2:
+            print(f'(Case:{n}, Patients: first_patient: {patients_list_1.index(p1)+1}, second_patient: {patients_list_2.index(p2)+1})')
+            n=n+1
+            set_level_similarity = ss_funtion(p1,p2,ic_function,cs_function)
+            print(set_level_similarity)
+            row.append(set_level_similarity)
+        matrix.append(row)
+    return matrix
+
+# ================ Preprocessing ===========
+
+def get_patients(patients_list):
+    """get list of concepts of patients & remove patients with not a valid concept"""
+    patients = []
+    for index, row in patients_list.iterrows():
+        if row['seq_num'] == 1:
+        # if row['seq_num']%4 == 0:
+            patient = []
+            patients.append(patient)
+            patient.append(row['icd_code'])
+        elif row['seq_num'] != 1 and patients == []:
+            continue
+        else: 
+            patient.append(row['icd_code'])
+
+    i = 0
+    patients_filtered = patients.copy()
+    for p in patients_filtered:
+        for c in p:
+            while True:
+                try:
+                    get_ancestors(c)
+                    break
+                except ValueError:
+                    print(i)
+                    print(c)
+                    patients_filtered[i] = ''
+                    print("Oops!  This code is not valid in the taxonomy...")
+                    break
+        i= i+1
+    
+    while patients_filtered.__contains__(''):
+        patients_filtered.remove('')
+
+    patients_filtered_num = len(patients_filtered)
+    print(patients_filtered)
+    print(patients_filtered_num)
+    return patients_filtered
+
+# ==============
+
+def get_y_train(patients_list):
+    """get labels of training data (train_patients)"""
+    y_labels = []
+    for index, row in patients_list.iterrows():
+        if row['seq_num'] == 1:
+            y_labels.append(row['curr_service'])
+    print(y_labels)
+    return y_labels
+
