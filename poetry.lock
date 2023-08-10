@@ -838,13 +838,13 @@ test = ["asv", "gmpy2", "mpmath", "pooch", "pytest", "pytest-cov", "pytest-timeo
 
 [[package]]
 name = "simple-icd-10-cm"
-version = "1.1.2"
+version = "1.2.0"
 description = "A simple python library for ICD-10-CM codes"
 optional = false
-python-versions = ">=3"
+python-versions = ">=3.9"
 files = [
-    {file = "simple_icd_10_cm-1.1.2-py3-none-any.whl", hash = "sha256:f6c8a14025b39ce288abc6c380ca0c89bcf3c3dc458490fe7c61cabd53ba46d6"},
-    {file = "simple_icd_10_cm-1.1.2.tar.gz", hash = "sha256:61b506cd43b3b8df1263eca32163015a526a1e3bc1f9191244ed2a142cbb3fd3"},
+    {file = "simple_icd_10_cm-1.2.0-py3-none-any.whl", hash = "sha256:9f325bdc507f8b273568afc6a609271ddcd89032ff599090f460a024b122d960"},
+    {file = "simple_icd_10_cm-1.2.0.tar.gz", hash = "sha256:ca5a310520cfde7a82436d695befae11b85253426b8f904e35a8bf5c2e23e4b3"},
 ]
 
 [[package]]
@@ -955,7 +955,18 @@ files = [
     {file = "wcwidth-0.2.6.tar.gz", hash = "sha256:a5220780a404dbe3353789870978e472cfe477761f06ee55077256e509b156d0"},
 ]
 
+[[package]]
+name = "xmltodict"
+version = "0.13.0"
+description = "Makes working with XML feel like you are working with JSON"
+optional = false
+python-versions = ">=3.4"
+files = [
+    {file = "xmltodict-0.13.0-py2.py3-none-any.whl", hash = "sha256:aa89e8fd76320154a40d19a0df04a4695fb9dc5ba977cbb68ab3e4eb225e7852"},
+    {file = "xmltodict-0.13.0.tar.gz", hash = "sha256:341595a488e3e01a85a9d8911d8912fd922ede5fecc4dce437eb4b6c8d037e56"},
+]
+
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.13"
-content-hash = "beb259b898cfd67f3221b63ad09d209f4dc611d0a72da7bd671e0de4b8069a83"
+content-hash = "7d6e7714f27635214a2b9331ba4f30f570caf616c968dad8c568e9a7e9340ae8"

@@ -1,10 +1,11 @@
 import master_thesis.simple_icd_10_cm as cm
-import pandas as pd
 import numpy as np
 from functools import reduce
 from scipy.sparse import csr_matrix
 from scipy.sparse.csgraph import min_weight_full_bipartite_matching
 import math
+
+# =========== General ===========
 
 def get_ancestors(concept: str) -> list[str]:
     """get ancestors of a concept"""
@@ -141,7 +142,7 @@ def compareCS(patients_list: list[list[str]],ic_function,cs_function) -> float:
 # ============ SS =============
 
 def get_ss5(patient1: list[str],patient2: list[str],ic_function,cs_function) -> float:
-    """get Set level similarity SS#5 between 2 patients (2 sets of concepts)"""
+    """get Set level similarity SS#5 between 2 patients (2 sets of concepts) using min"""
     A = patient1
     B = patient2
     n=1
@@ -270,7 +271,10 @@ def get_ss8(patient1: list[str],patient2: list[str],ic_function,cs_function) -> 
     print(f'SS#8: {ss8}')
     return ss8
 
-def get_similarity(patients_list: list[list[str]],ic_function,cs_function,ss_funtion) -> list[list[float]]:
+
+# ============ Train/Test =================
+
+def get_distance_matrix(patients_list: list[list[str]],ic_function,cs_function,ss_funtion) -> list[list[float]]:
     """get distance matrix from list of patients"""
     n=1
     matrix = []
@@ -290,7 +294,7 @@ def get_similarity(patients_list: list[list[str]],ic_function,cs_function,ss_fun
     return matrix
 
 def get_test_distance(patients_list_1: list[list[str]],patients_list_2: list[list[str]],ic_function,cs_function,ss_funtion) -> list[list[float]]:
-    """get distance matrix between train patients and test patients"""
+    """get distance between train patients and test patients"""
     n=1
     matrix = []
     for p1 in patients_list_1:
@@ -304,9 +308,19 @@ def get_test_distance(patients_list_1: list[list[str]],patients_list_2: list[lis
         matrix.append(row)
     return matrix
 
+def get_y(patients_list) -> list[str]:
+    """get labels of training data (train_patients)"""
+    y_labels = []
+    for index, row in patients_list.iterrows():
+        if row['seq_num'] == 1:
+            y_labels.append(row['curr_service'])
+    print(y_labels)
+    return y_labels
+
+
 # ================ Preprocessing ===========
 
-def get_patients(patients_list):
+def get_patients(patients_list) -> list[list[str]]:
     """get list of concepts of patients & remove patients with not a valid concept"""
     patients = []
     for index, row in patients_list.iterrows():
@@ -324,16 +338,14 @@ def get_patients(patients_list):
     patients_filtered = patients.copy()
     for p in patients_filtered:
         for c in p:
-            while True:
-                try:
-                    get_ancestors(c)
-                    break
-                except ValueError:
-                    print(i)
-                    print(c)
-                    patients_filtered[i] = ''
-                    print("Oops!  This code is not valid in the taxonomy...")
-                    break
+            if cm.is_valid_item(c) == False:
+                print(i)
+                print(c)
+                patients_filtered[i] = ''
+                print("Oops!  This code is not valid in the taxonomy...")
+                break
+            else:
+                continue
         i= i+1
     
     while patients_filtered.__contains__(''):
@@ -343,15 +355,3 @@ def get_patients(patients_list):
     print(patients_filtered)
     print(patients_filtered_num)
     return patients_filtered
-
-# ==============
-
-def get_y_train(patients_list):
-    """get labels of training data (train_patients)"""
-    y_labels = []
-    for index, row in patients_list.iterrows():
-        if row['seq_num'] == 1:
-            y_labels.append(row['curr_service'])
-    print(y_labels)
-    return y_labels
-
