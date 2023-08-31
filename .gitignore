@@ -1,5 +1,8 @@
 # User specifics
 data/*.csv
+**/taxonomies/*.xml
+**/taxonomies/*.csv
+**/taxonomies/*.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
