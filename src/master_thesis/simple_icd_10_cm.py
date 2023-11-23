@@ -143,7 +143,7 @@ class SimpleIcd10Cm:
 
         self._load_codes()
 
-    def _load_codes(self,):
+    def _load_codes(self):
         #loads the list of all codes, to remove later from the tree the ones that do not exist for very specific rules not easily extracted from the XML file
         f = pkg_resources.read_text(taxonomies, 'icd10cm-order-Jan-2021.txt')
         
@@ -482,4 +482,4 @@ class SimpleIcd10Cm:
 
 if __name__ == "__main__":
     cm = SimpleIcd10Cm()
-    print(cm.get_children("A01"))
+    # print(cm.get_children("A01"))

@@ -40,7 +40,7 @@ class ModelWrapper:
     def get_y(patients_list) -> list[str]:
         """get labels of training data (train_patients)"""
         y_labels = []
-        for index, row in patients_list.iterrows():
+        for _, row in patients_list.iterrows():
             if row['seq_num'] == 1:
                 y_labels.append(row['curr_service'])
         print(y_labels)

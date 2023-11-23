@@ -3,15 +3,16 @@ from scipy.sparse import csr_matrix
 from scipy.sparse.csgraph import min_weight_full_bipartite_matching
 import math
 
+from master_thesis.simple_icd_10_pcs import SimpleIcd10Pcs
 
 class BaseSimilarityLevels:
-    """General"""
+    """parameters used for IC,CS,SS formulas"""
     def __init__(self, simple_icd_10_class) -> None:
-        self.cm = simple_icd_10_class()
+        self.tax = simple_icd_10_class()
 
     def get_ancestors(self, concept: str) -> list[str]:
         """get ancestors of a concept"""
-        ancestors = (self.cm.get_ancestors(concept))
+        ancestors = (self.tax.get_ancestors(concept))
         return ancestors
 
     def get_num_levels(self, concept: str) -> int:
@@ -26,29 +27,35 @@ class BaseSimilarityLevels:
 
     def get_leaves_of_root(self, ) -> list[str]:
         """get concepts of leaves for the root node (r) of the taxonomy"""
-        all_codes = self.cm.get_all_codes()
+        all_codes = self.tax.get_all_codes()
         leaves = []
         for c in all_codes:
-            if self.cm.is_leaf(c) == True:
+            if self.tax.is_leaf(c) == True:
                 leaves.append(c)
         return leaves
 
     def get_num_leaves_of_root(self, ) -> int:
         """get number of leaves for the root node (r) of the taxonomy"""
+        if type(self.tax) == SimpleIcd10Pcs:
+            return 78136
         leaves_num = len(self.get_leaves_of_root())
         return leaves_num
 
     def get_num_of_leaves(self, concept: str) -> int:
         """get number of leaves for a concept"""
-        descendants = self.cm.get_descendants(concept)
+        if type(self.tax) == SimpleIcd10Pcs:
+            return self.tax.get_num_of_leaves_pcs(concept)
+        descendants = self.tax.get_descendants(concept)
         leaves = 0
         for c in descendants:
-            if self.cm.is_leaf(c) == True:
+            if self.tax.is_leaf(c) == True:
                 leaves = leaves+1
         return leaves
 
     def get_concept_with_total_levels_in_taxonomy(self) -> str:
         """get total levels in the taxonomy"""
+        if type(self.tax) == SimpleIcd10Pcs:
+            return '0TTB4ZZ'
         leaves_of_root = self.get_leaves_of_root()
         list_levels = []
         for leaf in leaves_of_root:
@@ -81,7 +88,7 @@ class BaseSimilarityLevels:
 
     def get_lca(self, concept1: str,concept2: str) -> str:
         """get least common ancestor (LCA) for between 2 concepts"""
-        lca = self.cm.get_nearest_common_ancestor(concept1,concept2)
+        lca = self.tax.get_nearest_common_ancestor(concept1,concept2)
         if lca == '':
             print(concept1,concept2,'\tlevels of LCA: 0', '\tleast common ancestor is the root node')
             return None
@@ -110,17 +117,17 @@ class SimilarityLevels(BaseSimilarityLevels):
         return ic2
 
     # ============ CS =============
+    def get_cs1(self,concept1: str,concept2: str,ic_function) -> float:
+        """get Code level similarity CS#1 between 2 concepts"""
+        cs1 = 1 - ((2*ic_function(self.get_lca(concept1,concept2)))/ (ic_function(concept1) + ic_function(concept2)))
+        print('CS#1 =',cs1)
+        return cs1
+
     def get_cs2(self,concept1: str,concept2: str,ic_function) -> float:
         """get Code level similarity CS#2 between 2 concepts"""
-        cs2 = 1 - ((2*ic_function(self.get_lca(concept1,concept2)))/ (ic_function(concept1) + ic_function(concept2)))
-        print('cs#2 =',cs2)
+        cs2 = (ic_function(self.get_concept_with_total_levels_in_taxonomy()) - ic_function(self.get_lca(concept1,concept2)))/ic_function(self.get_concept_with_total_levels_in_taxonomy())
+        print('CS#2 =',cs2)
         return cs2
-
-    def get_cs4(self,concept1: str,concept2: str,ic_function) -> float:
-        """get Code level similarity CS#4 between 2 concepts"""
-        cs4 = (ic_function(self.get_concept_with_total_levels_in_taxonomy()) - ic_function(self.get_lca(concept1,concept2)))/ic_function(self.get_concept_with_total_levels_in_taxonomy())
-        print('cs#4 =',cs4)
-        return cs4
 
     # ========compare CS===========
     def compareCS(self,patients_list: list[list[str]],ic_function,cs_function) -> float:
@@ -137,8 +144,8 @@ class SimilarityLevels(BaseSimilarityLevels):
                         cs_function(n1,n2,ic_function)
 
     # ============ SS =============
-    def get_ss5(self,patient1: list[str],patient2: list[str],ic_function,cs_function) -> float:
-        """get Set level similarity SS#5 between 2 patients (2 sets of concepts) using min"""
+    def get_ss1(self,patient1: list[str],patient2: list[str],ic_function,cs_function) -> float:
+        """get Set level similarity SS#1 between 2 patients (2 sets of concepts) using min"""
         A = patient1
         B = patient2
         n=1
@@ -168,12 +175,12 @@ class SimilarityLevels(BaseSimilarityLevels):
             csCom.append(minn)
         print(f'Min CS\'s of concepts of second patient: {csCom}')
         sum2 = sum(csCom)
-        ss5 = (sum1+sum2)/(len(A)+len(B))
-        print(f'SS#5: {ss5}')
-        return ss5
+        ss1 = (sum1+sum2)/(len(A)+len(B))
+        print(f'SS#1: {ss1}')
+        return ss1
 
-    def get_ss6(self,patient1: list[str],patient2: list[str],ic_function,cs_function) -> float:
-        """get Set level similarity SS#6 between 2 patients (2 sets of concepts)"""
+    def get_ss2(self,patient1: list[str],patient2: list[str],ic_function,cs_function) -> float:
+        """get Set level similarity SS#2 between 2 patients (2 sets of concepts)"""
         A = set(patient1)
         B = set(patient2)
         AUB = A | B
@@ -202,12 +209,12 @@ class SimilarityLevels(BaseSimilarityLevels):
         print(f'Average CS\'s of each concept of first and second patients: {csCom}')
         total = sum(csCom)
         print(AUB)
-        ss6 = total/len(AUB)
-        print(f'SS#6: {ss6}')
-        return ss6
+        ss2 = total/len(AUB)
+        print(f'SS#2: {ss2}')
+        return ss2
 
-    def get_ss7(self,patient1: list[str],patient2: list[str],ic_function,cs_function) -> float:
-        """get Set level similarity SS#7 between 2 patients (2 sets of concepts)"""
+    def get_ss3(self,patient1: list[str],patient2: list[str],ic_function,cs_function) -> float:
+        """get Set level similarity SS#3 between 2 patients (2 sets of concepts)"""
         A = patient1
         B = patient2
         n=1
@@ -218,12 +225,12 @@ class SimilarityLevels(BaseSimilarityLevels):
                 n=n+1
                 csSimilarity = cs_function(a,b,ic_function)
                 summ = summ + csSimilarity
-        ss7 = summ/(len(A)*len(B))
-        print(f'SS#7: {ss7}')
-        return ss7
+        ss3 = summ/(len(A)*len(B))
+        print(f'SS#3: {ss3}')
+        return ss3
 
-    def get_ss8(self,patient1: list[str],patient2: list[str],ic_function,cs_function) -> float:
-        """get Set level similarity SS#8 Minimum Weighted Bipartite Matching between 2 patients"""
+    def get_ss4(self,patient1: list[str],patient2: list[str],ic_function,cs_function) -> float:
+        """get Set level similarity SS#4 Minimum Weighted Bipartite Matching between 2 patients"""
         A = set(patient1)
         B = set(patient2)
         AdiffB = A - B
@@ -262,7 +269,7 @@ class SimilarityLevels(BaseSimilarityLevels):
             dd = xx[indecies[csCom.index(xx)]]
             new_list.append(dd)
         sumCs = sum(new_list)
-        ss8 = sumCs/min(len(A),len(B))
+        ss4 = sumCs/min(len(A),len(B))
         print(f'weight(CS) of edges with a minimum sum of weights(CS): {new_list}')
-        print(f'SS#8: {ss8}')
-        return ss8
+        print(f'SS#4: {ss4}')
+        return ss4
