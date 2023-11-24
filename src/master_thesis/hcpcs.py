@@ -1437,14 +1437,4 @@ class Hcpcs(BaseHcpcs):
 if __name__ == "__main__":
     hcpcs = Hcpcs()
     # print(hcpcd.get_descendants('M1003-M1070'))
-    # all_codes = hcpcs.get_all_codes()
-    # print(len(all_codes))
-    # leaves = []
-    # for c in all_codes:
-    #     print(c)
-        # if hcpcs.is_leaf(c) == True:
-            # leaves.append(c)
-            # print(c)
-        # else:
-            # print('no')
-    # leaves
+    

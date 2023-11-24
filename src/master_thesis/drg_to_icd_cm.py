@@ -59,3 +59,4 @@ class Drg_to_icd_cm(SimpleIcd10Cm):
 
 if __name__ == "__main__":
     Drg_to_icd_cm.drg_to_icd()
+    

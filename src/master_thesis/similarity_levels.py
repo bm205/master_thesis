@@ -4,6 +4,7 @@ from scipy.sparse.csgraph import min_weight_full_bipartite_matching
 import math
 
 from master_thesis.simple_icd_10_pcs import SimpleIcd10Pcs
+from master_thesis.hcpcs import Hcpcs
 
 class BaseSimilarityLevels:
     """parameters used for IC,CS,SS formulas"""
@@ -36,15 +37,21 @@ class BaseSimilarityLevels:
 
     def get_num_leaves_of_root(self, ) -> int:
         """get number of leaves for the root node (r) of the taxonomy"""
+        # workarounf to make process faster:
         if type(self.tax) == SimpleIcd10Pcs:
             return 78136
+        elif type(self.tax) == Hcpcs:
+            return 7372
+        # End of workaround
         leaves_num = len(self.get_leaves_of_root())
         return leaves_num
 
     def get_num_of_leaves(self, concept: str) -> int:
         """get number of leaves for a concept"""
+        # workarounf to make process faster:
         if type(self.tax) == SimpleIcd10Pcs:
             return self.tax.get_num_of_leaves_pcs(concept)
+        # End of workaround
         descendants = self.tax.get_descendants(concept)
         leaves = 0
         for c in descendants:
@@ -54,8 +61,12 @@ class BaseSimilarityLevels:
 
     def get_concept_with_total_levels_in_taxonomy(self) -> str:
         """get total levels in the taxonomy"""
+        # workarounf to make process faster:
         if type(self.tax) == SimpleIcd10Pcs:
             return '0TTB4ZZ'
+        if type(self.tax) == Hcpcs:
+            return 'A4206'
+        # End of workaround
         leaves_of_root = self.get_leaves_of_root()
         list_levels = []
         for leaf in leaves_of_root:
