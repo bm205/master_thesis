@@ -16,7 +16,6 @@ class Preprocesser:
         patients = []
         for _, row in patients_list.iterrows():
             if row['seq_num'] == 1:
-            # if row['seq_num']%4 == 0:
                 patient = []
                 patients.append(patient)
                 print(row['hadm_id'])
@@ -44,10 +43,12 @@ class Preprocesser:
         if 'icd_version' in icd_data:
             icd10 = icd_data.loc[icd_data['icd_version'] == 10]
             icd_data = icd10[['hadm_id','seq_num','icd_code']]
+            icd_data = icd_data.reset_index()
 
             return icd_data
         else:
             icd_data = icd_data[['hadm_id','seq_num','icd_code']]
+            icd_data = icd_data.reset_index()
             return icd_data
     
     def filtering_hcpcs(hcpcsevents):
@@ -67,7 +68,10 @@ class Preprocesser:
     
     def filtering_services(services):
         previous_service = ''
+        last = len(services['curr_service']) - 1
         for index,row in services.iterrows():
+            if index == last:
+                break
             if row['prev_service'] is not np.nan:
                 services['curr_service'][index] = previous_service + ' ' + services['curr_service'][index]
                 if row['hadm_id'] != services['hadm_id'][index+1]:
@@ -82,7 +86,7 @@ class Preprocesser:
         filtered_services = services[services['prev_service']!='delete']
         filtered_services
 
-        filtered_services.to_csv('../data/service_filtered.csv')
+        filtered_services.to_csv('data/service_filtered.csv')
         return filtered_services
     
     def get_data_2_tax(data_tax_1,data_tax_2,data_tax_3,data_tax_4):
@@ -106,12 +110,30 @@ class Preprocesser:
 
         return a,b
 
+    def remove_patients_with_many_codes(patients):
+        data = {'hadm_id': [], 'seq_num':[]}
+        df = pd.DataFrame(data)
+
+        df_ind = 0
+        last_ind = len(patients)-1
+        for index,row in patients.iterrows():
+            if index==0:
+                continue
+            if index == last_ind and patients['seq_num'][index] <6:
+                df.loc[df_ind] = [patients['hadm_id'][index],patients['seq_num'][index]]
+            
+            if patients['hadm_id'][index] != patients['hadm_id'][index-1] and patients['seq_num'][index-1] <6:
+                df.loc[df_ind] = [patients['hadm_id'][index-1],patients['seq_num'][index-1]]
+                df_ind = df_ind + 1
+
+        return df
+
     def join_data_2_tax(data_tax_1,data_tax_2,labeled_data):
-        data_tax_1 = data_tax_1[['hadm_id']]
-        data_tax_2 = data_tax_2[['hadm_id']]
-        data_tax_1 = data_tax_1.drop_duplicates()
-        data_tax_2 = data_tax_2.drop_duplicates()
-        join0 = pd.merge(data_tax_1,data_tax_2,on='hadm_id',how='inner')
+        data_tax_1_after_remove = Preprocesser.remove_patients_with_many_codes(data_tax_1)
+        data_tax_2_after_remove = Preprocesser.remove_patients_with_many_codes(data_tax_2)
+        data_tax_1_after_remove = data_tax_1_after_remove[['hadm_id']]
+        data_tax_2_after_remove = data_tax_2_after_remove[['hadm_id']]
+        join0 = pd.merge(data_tax_1_after_remove,data_tax_2_after_remove,on='hadm_id',how='inner')
         join = pd.merge(labeled_data,join0,on='hadm_id',how='inner')
 
         return join

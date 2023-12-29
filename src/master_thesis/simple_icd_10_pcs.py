@@ -232,6 +232,8 @@ class SimpleIcd10Pcs(BaseSimpleIcd10Pcs):
                 level_7_0.append(level_7)
 
     def get_num_of_leaves_pcs(self, concept:str) -> int:
+        if concept == 'origin':
+            return 78136
         df = pd.read_csv('./src/master_thesis/taxonomies/icd10pcs_order_20211.csv')
         df2 = df.loc[df['Column3'] == 1]
         col2 = df2[['Column2']]
@@ -245,5 +247,5 @@ class SimpleIcd10Pcs(BaseSimpleIcd10Pcs):
 
 if __name__ == "__main__":
     pcs = SimpleIcd10Pcs()
-    # print(pcs.get_num_of_leaves_pcs('0TTB4ZZ'))
+    # print(len(pcs.get_all_codes()))
     

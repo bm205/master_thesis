@@ -5,19 +5,28 @@ class ModelWrapper:
         """get distance matrix from list of patients"""
         n=1
         matrix = []
-        for p1 in patients_list:
+        for index1, p1 in enumerate(patients_list):
             row = []
-            for p2 in patients_list:
-                if patients_list.index(p1) == patients_list.index(p2):
-                    patients_list.index(p2) + 1
+            for index2, p2 in enumerate(patients_list):
+                if index1 == index2:
+                    index2 + 1
                     row.append(0)
                     continue
-                print(f'(Case:{n}, Patients: first_patient: {patients_list.index(p1)+1}, second_patient: {patients_list.index(p2)+1})')
+                if index1 > index2:
+                    row.append(int(str(index1)+str(index2)))
+                    continue
+                print(f'(Case:{n}, Patients: first_patient: {index1+1}, second_patient: {index2+1})')
                 n=n+1
                 set_level_similarity = ss_funtion(p1,p2,ic_function,cs_function)
                 print(set_level_similarity)
                 row.append(set_level_similarity)
             matrix.append(row)
+
+        end = len(matrix)
+        for i in range(0,end):
+            for j in range(0,end):
+                if i > j:
+                    matrix[i][j] = matrix[j][i]
         return matrix
 
     @staticmethod
@@ -25,10 +34,10 @@ class ModelWrapper:
         """get distance between train patients and test patients"""
         n=1
         matrix = []
-        for p1 in patients_list_1:
+        for index1, p1 in enumerate(patients_list_1):
             row = []
-            for p2 in patients_list_2:
-                print(f'(Case:{n}, Patients: first_patient: {patients_list_1.index(p1)+1}, second_patient: {patients_list_2.index(p2)+1})')
+            for index2, p2 in enumerate(patients_list_2):
+                print(f'(Case:{n}, Patients: first_patient: {index1+1}, second_patient: {index2+1})')
                 n=n+1
                 set_level_similarity = ss_funtion(p1,p2,ic_function,cs_function)
                 print(set_level_similarity)

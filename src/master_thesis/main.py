@@ -12,7 +12,7 @@ if __name__ == "__main__":
     if len(config.TAXONOMIES) == 1:
         if all(x in ['cm', 'pcs', 'drg', 'hcpcs'] for x in config.TAXONOMIES):
             print('1 Taxonomy')
-            Processer.process_1_tax()
+            Processer.process_1_tax_train()
             
     elif len(config.TAXONOMIES) == 2:
         if all(x in ['cm', 'pcs', 'drg', 'hcpcs'] for x in config.TAXONOMIES):
