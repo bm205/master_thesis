@@ -12,13 +12,13 @@ if __name__ == "__main__":
     if len(config.TAXONOMIES) == 1:
         if all(x in ['cm', 'pcs', 'drg', 'hcpcs'] for x in config.TAXONOMIES):
             print('1 Taxonomy')
-            Processer.process_1_tax()
+            Processer.process_1_tax_train()
             
     elif len(config.TAXONOMIES) == 2:
         if all(x in ['cm', 'pcs', 'drg', 'hcpcs'] for x in config.TAXONOMIES):
             print('2 Taxonomies')
             print(f'weights: {config.WEIGHTS[0]}:{config.WEIGHTS[1]}')
-            Processer.process_2_tax()
+            Processer.process_2_tax_new()
     
     elif len(config.TAXONOMIES) == 4:
         if all(x in ['cm', 'pcs', 'drg', 'hcpcs'] for x in config.TAXONOMIES):
