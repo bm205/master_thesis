@@ -7,6 +7,7 @@ from master_thesis.similarity_levels import SimilarityLevels
 from master_thesis.simple_icd_10_cm import SimpleIcd10Cm
 from master_thesis.simple_icd_10_pcs import SimpleIcd10Pcs
 from master_thesis.drg_to_icd_cm import Drg_to_icd_cm
+import master_thesis.train_dis_mat as tr
 
 
 # if __name__ == "__main__":
@@ -54,10 +55,37 @@ from master_thesis.drg_to_icd_cm import Drg_to_icd_cm
 
 # all_patients.to_csv('data/joined_pcs_hcpcs_tax_patients.csv')
 
-dat1 = pd.read_csv('data/pcs_hcpcs.csv')
-data_service = pd.read_csv('data/services_filtered.csv')
-data_service = data_service[['hadm_id','curr_service']]
-join = pd.merge(dat1,data_service,on='hadm_id',how='inner')
+# dat1 = pd.read_csv('data/pcs_hcpcs.csv')
+# data_service = pd.read_csv('data/services_filtered.csv')
+# data_service = data_service[['hadm_id','curr_service']]
+# join = pd.merge(dat1,data_service,on='hadm_id',how='inner')
 
-join.to_csv('data/pcs_hcpcs_final.csv')
+# join.to_csv('data/pcs_hcpcs_final.csv')
 
+# --------------------
+
+file_path = 'data/final.csv'
+data = pd.read_csv(file_path)
+column_1 = data['hadm_id'][0:50]
+column_2 = data['curr_service'][0:50]
+
+for weights in config.WEIGHTS:
+    X_train_cm = tr.X_train_dist_matrix_cm_4
+    X_train_pcs = tr.X_train_dist_matrix_pcs_4
+    X_train_drg = tr.X_train_dist_matrix_drg_4
+
+    X_train_dist_matrix_1 = np.multiply(X_train_cm, weights[0])
+    X_train_dist_matrix_2 = np.multiply(X_train_pcs, weights[1])
+    X_train_dist_matrix_3 = np.multiply(X_train_drg, weights[2])
+    X_train_dist_matrix = np.array(X_train_dist_matrix_1) + np.array(X_train_dist_matrix_2) + np.array(X_train_dist_matrix_3)
+
+    df = pd.DataFrame(X_train_dist_matrix)
+
+    # Add new columns
+    ss = pd.concat([column_1,column_2,df], axis=1)
+    # ss = pd.concat([column_2], axis=1)
+    # df = pd.concat([df, column_2], axis=1)
+    # df['hadm_id'] = 'Value1'
+    # df['curr_service'] = 'Value2'
+
+    ss.to_csv(f'X_train_dist_matrix_{weights}.csv', index=True)

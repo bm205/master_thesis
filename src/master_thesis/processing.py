@@ -8,9 +8,10 @@ from master_thesis.simple_icd_10_cm import SimpleIcd10Cm
 from master_thesis.simple_icd_10_pcs import SimpleIcd10Pcs
 from master_thesis.drg_to_icd_cm import Drg_to_icd_cm
 from master_thesis.hcpcs import Hcpcs
+from sklearn.model_selection import cross_val_score, StratifiedKFold
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import confusion_matrix
-from sklearn.metrics import f1_score
+from sklearn.metrics import f1_score, make_scorer
 from sklearn.metrics import accuracy_score
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -424,7 +425,7 @@ class Processer:
             #     Preprocesser.choose_cs_metric(sim_lvls_1),
             #     Preprocesser.choose_ss_metric(sim_lvls_1)
             #     )
-            X_train_1 = tr.X_train_dist_matrix_cm_4_ic1
+            X_train_1 = tr.X_train_dist_matrix_cm_4
             
             # X_train_2 = ModelWrapper.get_distance_matrix(
             #     train_tax_2_patients_list,
@@ -432,9 +433,9 @@ class Processer:
             #     Preprocesser.choose_cs_metric(sim_lvls_2),
             #     Preprocesser.choose_ss_metric(sim_lvls_2)
             #     )
-            X_train_2 = tr.X_train_dist_matrix_pcs_4_ic1
+            X_train_2 = tr.X_train_dist_matrix_pcs_4
 
-            X_train_3 = tr.X_train_dist_matrix_drg_4_ic1
+            X_train_3 = tr.X_train_dist_matrix_drg_4
 
         
             X_train_dist_matrix_1 = np.multiply(X_train_1, weights[0])
@@ -449,9 +450,9 @@ class Processer:
         #     Preprocesser.choose_cs_metric(sim_lvls_1),
         #     Preprocesser.choose_ss_metric(sim_lvls_1)
         #     )
-            X_test_1_batch_1 = tr.X_test_dist_matrix_cm_4_batch_1_ic1
-            X_test_1_batch_2 = tr.X_test_dist_matrix_cm_4_batch_2_ic1
-            X_test_1_batch_3 = tr.X_test_dist_matrix_cm_4_batch_3_ic1
+            X_test_1_batch_1 = tr.X_test_dist_matrix_cm_4_batch_1
+            X_test_1_batch_2 = tr.X_test_dist_matrix_cm_4_batch_2
+            X_test_1_batch_3 = tr.X_test_dist_matrix_cm_4_batch_3
         
         # X_test_2= ModelWrapper.get_test_distance(
         #     test_tax_2_patients_list,
@@ -460,13 +461,13 @@ class Processer:
         #     Preprocesser.choose_cs_metric(sim_lvls_2),
         #     Preprocesser.choose_ss_metric(sim_lvls_2)
         #     )
-            X_test_2_batch_1 = tr.X_test_dist_matrix_pcs_4_batch_1_ic1
-            X_test_2_batch_2 = tr.X_test_dist_matrix_pcs_4_batch_2_ic1
-            X_test_2_batch_3 = tr.X_test_dist_matrix_pcs_4_batch_3_ic1
+            X_test_2_batch_1 = tr.X_test_dist_matrix_pcs_4_batch_1
+            X_test_2_batch_2 = tr.X_test_dist_matrix_pcs_4_batch_2
+            X_test_2_batch_3 = tr.X_test_dist_matrix_pcs_4_batch_3
 
-            X_test_3_batch_1 = tr.X_test_dist_matrix_drg_4_batch_1_ic1
-            X_test_3_batch_2 = tr.X_test_dist_matrix_drg_4_batch_2_ic1
-            X_test_3_batch_3 = tr.X_test_dist_matrix_drg_4_batch_3_ic1
+            X_test_3_batch_1 = tr.X_test_dist_matrix_drg_4_batch_1
+            X_test_3_batch_2 = tr.X_test_dist_matrix_drg_4_batch_2
+            X_test_3_batch_3 = tr.X_test_dist_matrix_drg_4_batch_3
 
             X_test_dist_matrix_1_batch_1 = np.multiply(X_test_1_batch_1, weights[0])
             X_test_dist_matrix_2_batch_1 = np.multiply(X_test_2_batch_1, weights[1])
@@ -506,8 +507,12 @@ class Processer:
             # con_mat = confusion_matrix(y_actual, y_pred)
 
             print('=============')
-            # print(f'Predicted Hospital Service: {y_pred}')
-            # print(f'Actual Hospital Service: {y_actual}')
+            # print(f'Predicted Hospital Service_batch_1_{weights}: {y_pred_batch_1}')
+            # print(f'Predicted Hospital Service_batch_2_{weights}: {y_pred_batch_2}')
+            # print(f'Predicted Hospital Service_batch_3_{weights}: {y_pred_batch_3}')
+            # print(f'Actual Hospital Service_batch_1_{weights}: {y_actual_batch_1}')
+            # print(f'Actual Hospital Service_batch_2_{weights}: {y_actual_batch_2}')
+            # print(f'Actual Hospital Service_batch_3_{weights}: {y_actual_batch_3}')
             # print(f'confusion matrix: \n{con_mat}')
             print(f'f1_score_weighted_batch_1_{weights}: {f1_score(y_actual_batch_1, y_pred_batch_1,average="weighted")}')
             print(f'f1_score_weighted_batch_2_{weights}: {f1_score(y_actual_batch_2, y_pred_batch_2,average="weighted")}')
