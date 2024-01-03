@@ -64,28 +64,88 @@ import master_thesis.train_dis_mat as tr
 
 # --------------------
 
-file_path = 'data/final.csv'
+# file_path = 'data/final.csv'
+# data = pd.read_csv(file_path)
+# column_1 = data['hadm_id'][0:50]
+# column_2 = data['curr_service'][0:50]
+
+# for weights in config.WEIGHTS:
+#     X_train_cm = tr.X_train_dist_matrix_cm_2
+#     X_train_pcs = tr.X_train_dist_matrix_pcs_2
+#     X_train_drg = tr.X_train_dist_matrix_drg_2
+
+#     X_train_dist_matrix_1 = np.multiply(X_train_cm, weights[0])
+#     X_train_dist_matrix_2 = np.multiply(X_train_pcs, weights[1])
+#     X_train_dist_matrix_3 = np.multiply(X_train_drg, weights[2])
+#     X_train_dist_matrix = np.array(X_train_dist_matrix_1) + np.array(X_train_dist_matrix_2) + np.array(X_train_dist_matrix_3)
+
+#     df = pd.DataFrame(X_train_dist_matrix)
+
+#     # Add new columns
+#     ss = pd.concat([column_1,column_2,df], axis=1)
+#     # ss = pd.concat([column_2], axis=1)
+#     # df = pd.concat([df, column_2], axis=1)
+#     # df['hadm_id'] = 'Value1'
+#     # df['curr_service'] = 'Value2'
+
+#     ss.to_csv(f'X_train_dist_matrix_{weights}.csv', index=True)
+
+# ---------------
+
+import math
+import master_thesis.train_dis_mat as tr
+
+# batch = pd.read_csv('data/final.csv')
+# batch = batch[0:50]
+
+# X_train_dist_matrix = tr.X_train_dist_matrix_pcs_1_ic1
+
+# if config.K == 'CV':
+#     k = Preprocesser.find_k_using_cv(batch,X_train_dist_matrix)
+# elif config.K == 'RoT':
+#     k = round(math.sqrt(len(batch)))
+# else:
+#     raise ValueError('Wrong K value. Please fix it in the config file to be either \'CV\' or \'RoT\'.')
+
+# print(f'value of k is: {k}')
+
+# =============
+# all_patients = batch[0:200]
+# train_all_patients = np.array_split(all_patients,4)[0]
+# test_all_patients_batch_1 = np.array_split(all_patients,4)[1]
+# test_all_patients_batch_2 = np.array_split(all_patients,4)[2]
+# test_all_patients_batch_3 = np.array_split(all_patients,4)[3]
+# test_all_patients = [test_all_patients_batch_1,test_all_patients_batch_2,test_all_patients_batch_3]
+
+# for index,ss in enumerate(test_all_patients):
+#     print(ss)
+# print(config.TAXONOMIES)
+
+# =====================
+
+# data_service = pd.read_csv('./data/services.csv')
+# data_service = Preprocesser.filtering_services(data_service)
+
+file_path = 'data/services.csv'
 data = pd.read_csv(file_path)
-column_1 = data['hadm_id'][0:50]
-column_2 = data['curr_service'][0:50]
 
-for weights in config.WEIGHTS:
-    X_train_cm = tr.X_train_dist_matrix_cm_4
-    X_train_pcs = tr.X_train_dist_matrix_pcs_4
-    X_train_drg = tr.X_train_dist_matrix_drg_4
+def combine_services(data):
+    data['subject_id'] = data['subject_id'].astype(str)
+    data['hadm_id'] = data['hadm_id'].astype(str)
 
-    X_train_dist_matrix_1 = np.multiply(X_train_cm, weights[0])
-    X_train_dist_matrix_2 = np.multiply(X_train_pcs, weights[1])
-    X_train_dist_matrix_3 = np.multiply(X_train_drg, weights[2])
-    X_train_dist_matrix = np.array(X_train_dist_matrix_1) + np.array(X_train_dist_matrix_2) + np.array(X_train_dist_matrix_3)
+    grouped = data.groupby('hadm_id')
+    rows_to_remove = []
+    for name, group in grouped:
+        if len(group) > 1: 
+            combined_service = ' '.join(group['curr_service'].astype(str))
+            first_index = group.index[0]
+            data.at[first_index, 'curr_service'] = combined_service
+            rows_to_remove.extend(group.index[1:]) 
 
-    df = pd.DataFrame(X_train_dist_matrix)
+    data.drop(rows_to_remove, inplace=True)
 
-    # Add new columns
-    ss = pd.concat([column_1,column_2,df], axis=1)
-    # ss = pd.concat([column_2], axis=1)
-    # df = pd.concat([df, column_2], axis=1)
-    # df['hadm_id'] = 'Value1'
-    # df['curr_service'] = 'Value2'
+    data.to_csv('data/service_filtered444.csv')
 
-    ss.to_csv(f'X_train_dist_matrix_{weights}.csv', index=True)
+    return data
+
+combined_data = combine_services(data.copy())

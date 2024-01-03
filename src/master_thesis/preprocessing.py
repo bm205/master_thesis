@@ -1,6 +1,9 @@
 import pandas as pd
 import numpy as np
 import master_thesis.config as config
+from sklearn.model_selection import cross_val_score, StratifiedKFold
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import make_scorer, f1_score
 
 class Preprocesser:
     """Preprocessing"""
@@ -66,29 +69,25 @@ class Preprocesser:
 
         filtered.to_csv('data/hcpcs_filtered.csv')
         return filtered
-    
+
     def filtering_services(services):
-        previous_service = ''
-        last = len(services['curr_service']) - 1
-        for index,row in services.iterrows():
-            if index == last:
-                break
-            if row['prev_service'] is not np.nan:
-                services['curr_service'][index] = previous_service + ' ' + services['curr_service'][index]
-                if row['hadm_id'] != services['hadm_id'][index+1]:
-                    services['prev_service'][index] = np.nan
-                else:
-                    services['prev_service'][index] = 'delete'
-            else:
-                if row['hadm_id'] == services['hadm_id'][index+1]:
-                    services['prev_service'][index] = 'delete'
-            previous_service =  services['curr_service'][index]
+        # services['subject_id'] = services['subject_id'].astype(str)
+        # services['hadm_id'] = services['hadm_id'].astype(str)
 
-        filtered_services = services[services['prev_service']!='delete']
-        filtered_services
+        grouped = services.groupby('hadm_id')
+        rows_to_remove = []
+        for name, group in grouped:
+            if len(group) > 1:
+                combined_service = ' '.join(group['curr_service'].astype(str))
+                first_index = group.index[0]
+                services.at[first_index, 'curr_service'] = combined_service
+                rows_to_remove.extend(group.index[1:])
 
-        filtered_services.to_csv('data/service_filtered.csv')
-        return filtered_services
+        services.drop(rows_to_remove, inplace=True)
+
+        services.to_csv('data/service_filtered.csv')
+
+        return services
     
     def get_data_2_tax(data_tax_1,data_tax_2,data_tax_3,data_tax_4):
         data = []
@@ -110,6 +109,30 @@ class Preprocesser:
             b = data_tax_4
 
         return a,b
+    
+    def get_data_3_tax(data_tax_1,data_tax_2,data_tax_3,data_tax_4):
+        data = []
+        a = pd.DataFrame(data)
+        b = pd.DataFrame(data)
+        c = pd.DataFrame(data)
+        if data_tax_1.empty:
+            a = data_tax_2
+            b = data_tax_3
+            c = data_tax_4
+        elif data_tax_2.empty:
+            a = data_tax_1
+            b = data_tax_3
+            c = data_tax_4
+        elif data_tax_3.empty:
+            a = data_tax_1
+            b = data_tax_2
+            c = data_tax_4
+        elif data_tax_4.empty:
+            a = data_tax_1
+            b = data_tax_2
+            c = data_tax_3
+
+        return a,b,c
 
     def remove_patients_with_many_codes(patients):
         data = {'hadm_id': [], 'seq_num':[]}
@@ -137,39 +160,32 @@ class Preprocesser:
         join = pd.merge(labeled_data,join0,on='hadm_id',how='inner')
 
         return join
-    
-    def join_cm_pcs_drg():
-        data_cm = pd.read_csv('data/diagnoses_icd.csv')
-        data_cm = Preprocesser.filtering_icd(data_cm)
-        data_pcs = pd.read_csv('data/procedures_icd.csv')
-        data_pcs = Preprocesser.filtering_icd(data_pcs)
-        data_drg = pd.read_csv('data/drg_to_icd.csv')
-        data_cm_after_remove = Preprocesser.remove_patients_with_many_codes(data_cm)
-        data_pcs_after_remove = Preprocesser.remove_patients_with_many_codes(data_pcs)
-        data_drg_after_remove = Preprocesser.remove_patients_with_many_codes(data_drg)
-        data_cm_after_remove = data_cm_after_remove[['hadm_id']]
-        data_pcs_after_remove = data_pcs_after_remove[['hadm_id']]
-        data_drg_after_remove = data_drg_after_remove[['hadm_id']]
-        data_service = pd.read_csv('data/services_filtered.csv')
-        data_service = data_service[['hadm_id','curr_service']]
-        join0 = pd.merge(data_cm_after_remove,data_pcs_after_remove,on='hadm_id',how='inner')
-        join1 = pd.merge(join0,data_drg_after_remove,on='hadm_id',how='inner')
-        join = pd.merge(data_service,join1,on='hadm_id',how='inner')
+
+    def join_data_3_tax(data_tax_1,data_tax_2,data_tax_3,labeled_data):
+        data_tax_1_after_remove = Preprocesser.remove_patients_with_many_codes(data_tax_1)
+        data_tax_2_after_remove = Preprocesser.remove_patients_with_many_codes(data_tax_2)
+        data_tax_3_after_remove = Preprocesser.remove_patients_with_many_codes(data_tax_3)
+        data_tax_1_after_remove = data_tax_1_after_remove[['hadm_id']]
+        data_tax_2_after_remove = data_tax_2_after_remove[['hadm_id']]
+        data_tax_3_after_remove = data_tax_3_after_remove[['hadm_id']]
+        join0 = pd.merge(data_tax_1_after_remove,data_tax_2_after_remove,on='hadm_id',how='inner')
+        join1 = pd.merge(join0,data_tax_3_after_remove,on='hadm_id',how='inner')
+        join = pd.merge(labeled_data,join1,on='hadm_id',how='inner')
 
         return join
     
     def join_data_4_tax(data_cm,data_pcs,data_drg,data_hcpcs,labeled_data):
-        data_cm = data_cm[['hadm_id']]
-        data_pcs = data_pcs[['hadm_id']]
-        data_drg = data_drg[['hadm_id']]
-        data_hcpcs = data_hcpcs[['hadm_id']]
-        data_cm = data_cm.drop_duplicates()
-        data_pcs = data_pcs.drop_duplicates()
-        data_drg = data_drg.drop_duplicates()
-        data_hcpcs = data_hcpcs.drop_duplicates()
-        join0 = pd.merge(data_cm,data_pcs,on='hadm_id',how='inner')
-        join1 = pd.merge(join0,data_drg,on='hadm_id',how='inner')
-        join2 = pd.merge(join1,data_hcpcs,on='hadm_id',how='inner')
+        data_cm_after_remove = Preprocesser.remove_patients_with_many_codes(data_cm)
+        data_pcs_after_remove = Preprocesser.remove_patients_with_many_codes(data_pcs)
+        data_drg_after_remove = Preprocesser.remove_patients_with_many_codes(data_drg)
+        data_hcpcs_after_remove = Preprocesser.remove_patients_with_many_codes(data_hcpcs)
+        data_cm_after_remove = data_cm_after_remove[['hadm_id']]
+        data_pcs_after_remove = data_pcs_after_remove[['hadm_id']]
+        data_drg_after_remove = data_drg_after_remove[['hadm_id']]
+        data_hcpcs_after_remove = data_hcpcs_after_remove[['hadm_id']]
+        join0 = pd.merge(data_cm_after_remove,data_pcs_after_remove,on='hadm_id',how='inner')
+        join1 = pd.merge(join0,data_drg_after_remove,on='hadm_id',how='inner')
+        join2 = pd.merge(join1,data_hcpcs_after_remove,on='hadm_id',how='inner')
         join = pd.merge(labeled_data,join2,on='hadm_id',how='inner')
 
         return join
@@ -218,4 +234,36 @@ class Preprocesser:
             print('Wrong number. SS1 is considered.')
             ss = function.get_ss1
         return ss
-        
+    
+
+    def find_k_using_cv(data, train_distance_matrix):
+
+        X = pd.DataFrame(train_distance_matrix)
+        y = data['curr_service']
+
+        # Define a range of k values to test
+        k_values = range(1, 21)
+
+        # We will use Stratified K-Fold to maintain the proportion of each class in each fold
+        cv = StratifiedKFold(n_splits=5)
+
+        # Dictionary to store the average weighted F1 scores for each k value
+        f1_scores = {}
+
+        for k in k_values:
+            model = KNeighborsClassifier(n_neighbors=k)
+
+            # Calculate cross-validated weighted F1 score for each k
+            scores = cross_val_score(model, X, y, cv=cv, scoring=make_scorer(f1_score, average='weighted'))
+            
+            # Store the average F1 score
+            f1_scores[k] = np.mean(scores)
+
+        # Filter out k values that are less than or equal to 2
+        filtered_f1_scores = {k: score for k, score in f1_scores.items() if k > 2}
+
+        best_k = max(filtered_f1_scores, key=lambda k: (filtered_f1_scores[k], k))
+
+        print(f"The best k value with the highest weighted F1-score is: {best_k}")
+
+        return best_k
