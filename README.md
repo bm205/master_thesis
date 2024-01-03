@@ -7,23 +7,12 @@ This study aims to answer the research questions:
 
 > "In Patient Similarity, which medical taxonomy gives optimal results in patient similarity? And which combination of taxonomies gives optimal results in patient similarity? And in this case, what ratio gives the optimal result when combining taxonomies?
 
-## Importance
-Understanding the effectiveness of these strategies is crucial to:
-- Identify state-of-the-art approaches to background knowledge integration.
-- Enhance the performance of existing models.
-- Guide future research in argument mining.
-
 ## Benefits
 Through this study, we will:
-- Understand the strengths and weaknesses of different strategies.
-- Provide insights to improve model performances.
-- Contribute to the advancement of argument mining by identifying effective strategies.
-
-## Goals
-The study hopes to:
 - Create different types of models using the similarity metrics from Informarion Content formulas (IC, CS, SS).
 - Observe the model with the optimal weighted f-score results using k-NN machine learning algorithm.
-- Observe which medical taxonomy has optimal results, or combinations between them, and even ratios in combining them.
+- Observe which medical taxonomy (CM, PCS, DRG, HCPCS) has optimal results, or combinations between them, and even ratios in combining them.
+
 
 # Project Setup
 
