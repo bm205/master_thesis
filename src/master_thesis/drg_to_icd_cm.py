@@ -5,57 +5,31 @@ class Drg_to_icd_cm(SimpleIcd10Cm):
     @staticmethod
     def drg_to_icd():
 
-        df = pd.read_csv("./src/master_thesis/taxonomies/raw_drg_data.csv")
-        df1 = pd.read_csv("data/drgcodes.csv", dtype=str)
+        data = pd.read_csv('./src/master_thesis/taxonomies/raw_drg_data.csv')
+        df1 = pd.read_csv("data/drgcodes.csv")
         df2 = df1.loc[df1["drg_type"] == 'HCFA']
 
-        data = {'drg_code': [], 'icd_code':[],'seq_num':[]}
+        data.drop('description_detailed', axis=1, inplace=True)
 
-        dataframe = pd.DataFrame(data)
+        data['identifier_detailed'] = data['identifier_detailed'].str[:3]
 
-        previous_row = 'E08'
-        previous_drg = '008'
-        counter_icd = 0
-        counter_drg = 1
-        to_remove = []
+        aggregated_data = data.groupby(['identifier', 'identifier_detailed']).size().reset_index(name='count')
 
-        for _, row in df.iterrows():
-            icd_code = row['identifier_detailed'][0]+row['identifier_detailed'][1]+row['identifier_detailed'][2]
+        counts = aggregated_data.groupby('identifier')['identifier_detailed'].nunique()
 
-            if row['identifier'] == previous_drg:
-                if icd_code == previous_row:
-                    counter_icd = counter_icd + 1
-                else:
-                    drg_code=row['identifier']
-                    dataframe.loc[len(dataframe.index)] = [drg_code, previous_row, counter_drg]
-                    counter_drg = counter_drg + 1
-                    counter_icd = 1
-                    
-            else:
-                if counter_drg > 20:
-                    to_remove.append(previous_drg)
-                drg_code=row['identifier']
-                dataframe.loc[len(dataframe.index)] = [previous_drg, previous_row, counter_drg]
-                counter_icd = 1
-                counter_drg = 1
-            
-            if row['identifier'] == 'identifier':
-                break
-            
-            previous_row = icd_code
-            previous_drg = row['identifier']
+        filtered_identifiers = counts[counts <= 20].index
+        final_data = aggregated_data[aggregated_data['identifier'].isin(filtered_identifiers)]
 
-        dataframe_final = dataframe
-        for i in to_remove:
-            dataframe_final = dataframe_final.loc[dataframe["drg_code"] != i]
+        final_data.rename(columns={'identifier': 'drg_code'}, inplace=True)
 
-        df3 = df2
-        for i in to_remove:
-            df3 = df3.loc[df2["drg_code"] != i]
+        merged_data = pd.merge(df2,final_data, on='drg_code', how='inner')
+        merged_data['seq_num'] = merged_data.groupby('hadm_id').cumcount() + 1
 
-        join = pd.merge(df3,dataframe_final,on='drg_code',how='inner')
+        merged_data.rename(columns={'identifier_detailed': 'icd_code'}, inplace=True)
+        merged_data.drop('count', axis=1, inplace=True)
 
-        join.to_csv('data/drg_to_icd.csv')
+        merged_data.to_csv('data/drg_to_icd.csv',index=False)
+
 
 if __name__ == "__main__":
     Drg_to_icd_cm.drg_to_icd()
