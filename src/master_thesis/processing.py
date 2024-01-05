@@ -17,7 +17,6 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import pickle
 import csv
-import master_thesis.train_dis_mat as tr
 
 class Processer:
     """Processing"""
