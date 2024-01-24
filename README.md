@@ -38,6 +38,10 @@ scikit-learn = "^1.3.0"
 xmltodict = "^0.13.0"
 seaborn = "^0.13.0"
 
+## Getting the Data
+Download the following 5 csv files after granting access from physionet.org and save them inside 'data' folder:
+”diagnoses_icd.csv”, ”procedures_icd.csv”, ”drgcodes.csv”, ”hcpcsevents.csv”, ”services.csv”
+
 ## Running the Project
 To evaluate the models using the provided script:
 
